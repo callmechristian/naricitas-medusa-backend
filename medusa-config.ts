@@ -30,6 +30,7 @@ module.exports = defineConfig({
     { key: "api_key", resolve: "@medusajs/medusa/api-key" },
     { resolve: "./src/modules/support-tasks" },
     { resolve: "./src/modules/reviews" },
+    { resolve: "./src/modules/subscriptions" },
     {
       resolve: "@medusajs/medusa/payment",
       options: {

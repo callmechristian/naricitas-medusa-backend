@@ -1,0 +1,11 @@
+import { defineLink } from '@medusajs/framework/utils'
+import SubscriptionModule from '../modules/subscriptions'
+import OrderModule from '@medusajs/medusa/order'
+
+export default defineLink(
+  SubscriptionModule.linkable.subscription,
+  {
+    linkable: OrderModule.linkable.order.id,
+    isList: true,
+  }
+)
