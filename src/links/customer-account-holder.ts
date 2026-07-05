@@ -1,11 +1,16 @@
-import { defineLink } from '@medusajs/framework/utils'
+import { defineLink, Modules } from '@medusajs/framework/utils'
 import CustomerModule from '@medusajs/medusa/customer'
-import PaymentModule from '@medusajs/medusa/payment'
 
 export default defineLink(
   CustomerModule.linkable.customer,
   {
-    linkable: PaymentModule.linkable.accountHolder,
+    linkable: {
+      serviceName: Modules.PAYMENT,
+      entity: 'AccountHolder',
+      field: 'account_holder',
+      linkable: 'account_holder_id',
+      primaryKey: 'id',
+    },
     isList: false,
   }
 )
