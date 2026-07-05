@@ -1,5 +1,6 @@
 import { MedusaRequest, MedusaResponse } from '@medusajs/framework/http'
 import { ContainerRegistrationKeys, Modules } from '@medusajs/framework/utils'
+import { createPaymentCollectionForCartWorkflow } from '@medusajs/medusa/core-flows'
 
 export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   try {
@@ -9,7 +10,17 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
 
     const { data: [cart] } = await query.graph({
       entity: 'cart',
-      fields: ['id', 'email', 'customer_id', 'currency_code', 'total', 'payment_collection.id', 'payment_collection.amount', 'payment_collection.currency_code', 'payment_collection.payment_sessions.*'],
+      fields: [
+        'id',
+        'email',
+        'customer_id',
+        'currency_code',
+        'total',
+        'payment_collection.id',
+        'payment_collection.amount',
+        'payment_collection.currency_code',
+        'payment_collection.payment_sessions.*',
+      ],
       filters: { id: req.params.id },
     })
 
@@ -17,21 +28,22 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
       return res.status(400).json({ message: 'Cart email is required' })
     }
 
-    // Ensure payment collection exists and matches the cart total.
+    // Ensure payment collection exists and is linked to the cart.
     let paymentCollection = cart.payment_collection
     const cartTotal = Number(cart.total)
     if (!paymentCollection) {
-      const [collection] = await paymentModuleService.createPaymentCollections([
-        {
-          currency_code: cart.currency_code,
-          amount: cartTotal,
-        },
-      ])
+      const { result: collection } = await createPaymentCollectionForCartWorkflow(
+        req.scope
+      ).run({
+        input: { cart_id: cart.id },
+      })
       paymentCollection = collection
     } else {
       const collectionAmount = Number(paymentCollection.amount)
       if (collectionAmount !== cartTotal) {
-        logger.info(`Updating payment collection ${paymentCollection.id} amount from ${collectionAmount} to ${cartTotal}`)
+        logger.info(
+          `Updating payment collection ${paymentCollection.id} amount from ${collectionAmount} to ${cartTotal}`
+        )
         paymentCollection = await paymentModuleService.updatePaymentCollections(
           paymentCollection.id,
           { amount: cartTotal }
@@ -89,7 +101,10 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
     res.json({ payment_session: paymentSession, account_holder: accountHolder })
   } catch (err: any) {
     const logger = req.scope.resolve('logger')
-    logger.error(`subscription-payment-session failed for cart ${req.params.id}: ${err?.message}`, err)
+    logger.error(
+      `subscription-payment-session failed for cart ${req.params.id}: ${err?.message}`,
+      err
+    )
     res.status(500).json({ code: 'unknown_error', message: err?.message || 'Unknown error' })
   }
 }
