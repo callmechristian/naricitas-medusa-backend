@@ -42,7 +42,12 @@ const createSubscriptionOrderWorkflow = createWorkflow(
         'cart.shipping_methods.adjustments.*',
         'cart.payment_collection.*',
         'cart.payment_collection.payment_sessions.*',
-        'cart.customer.*',
+        'cart.customer.id',
+        'cart.customer.email',
+        'cart.customer.first_name',
+        'cart.customer.last_name',
+        'cart.customer.phone',
+        'cart.customer.company_name',
       ],
       filters: {
         id: input.subscription.id,
