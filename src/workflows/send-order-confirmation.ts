@@ -40,41 +40,53 @@ export const sendOrderConfirmationWorkflow = createWorkflow(
       },
     })
 
-    const notification = when({ orders }, ({ orders }) => {
-      return !!orders[0].email
-    }).then(() => {
-      return sendNotificationStep([
-        {
-          to: orders[0].email as string,
-          channel: 'email',
-          template: 'order-placed',
-          data: {
-            order: orders[0],
-          },
-        },
-      ])
-    })
-
     const ownerAlertEmails = getOwnerAlertEmailsStep()
 
-    const ownerAlertNotifications = transform(
-      { ownerAlertEmails, orders },
-      ({ ownerAlertEmails, orders }) =>
-        ownerAlertEmails.map((to) => ({
-          to,
-          channel: 'email',
-          template: 'order-alert-owner',
-          data: {
-            order: orders[0],
-            admin_url: process.env.BACKEND_URL ? `${process.env.BACKEND_URL}/app` : undefined,
-          },
-        }))
+    // sendNotificationStep can only be invoked once per workflow definition
+    // (each step invocation must have a unique name), so the customer
+    // order-placed email and the owner alert emails are combined into a
+    // single array and sent via one step call.
+    const notifications = transform(
+      { orders, ownerAlertEmails },
+      ({ orders, ownerAlertEmails }) => {
+        const list: {
+          to: string
+          channel: string
+          template: string
+          data: Record<string, unknown>
+        }[] = []
+
+        if (orders[0].email) {
+          list.push({
+            to: orders[0].email as string,
+            channel: 'email',
+            template: 'order-placed',
+            data: {
+              order: orders[0],
+            },
+          })
+        }
+
+        for (const to of ownerAlertEmails) {
+          list.push({
+            to,
+            channel: 'email',
+            template: 'order-alert-owner',
+            data: {
+              order: orders[0],
+              admin_url: process.env.BACKEND_URL ? `${process.env.BACKEND_URL}/app` : undefined,
+            },
+          })
+        }
+
+        return list
+      }
     )
 
-    when({ ownerAlertEmails }, ({ ownerAlertEmails }) => {
-      return ownerAlertEmails.length > 0
+    const notification = when({ notifications }, ({ notifications }) => {
+      return notifications.length > 0
     }).then(() => {
-      return sendNotificationStep(ownerAlertNotifications)
+      return sendNotificationStep(notifications)
     })
 
     return new WorkflowResponse({
