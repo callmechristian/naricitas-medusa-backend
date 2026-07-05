@@ -1,4 +1,5 @@
 import { MedusaService } from '@medusajs/framework/utils'
+import moment from 'moment'
 import Subscription from './models/subscription'
 import {
   CreateSubscriptionData,
@@ -6,17 +7,6 @@ import {
   SubscriptionInterval,
   SubscriptionStatus,
 } from './types'
-
-/** Adds `period` months/years (per `interval`) to `date`, returning a new Date. */
-function addInterval(date: Date, interval: SubscriptionInterval, period: number): Date {
-  const result = new Date(date)
-  if (interval === SubscriptionInterval.MONTHLY) {
-    result.setMonth(result.getMonth() + period)
-  } else {
-    result.setFullYear(result.getFullYear() + period)
-  }
-  return result
-}
 
 class SubscriptionModuleService extends MedusaService({
   Subscription,
@@ -32,8 +22,15 @@ class SubscriptionModuleService extends MedusaService({
     interval: SubscriptionInterval
     period: number
   }): Date | null {
-    const nextOrderDate = addInterval(last_order_date, interval, period)
-    return nextOrderDate > expiration_date ? null : nextOrderDate
+    const nextOrderDate = moment(last_order_date).add(
+      period,
+      interval === SubscriptionInterval.MONTHLY ? 'month' : 'year'
+    )
+    const expirationMomentDate = moment(expiration_date)
+
+    return nextOrderDate.isAfter(expirationMomentDate)
+      ? null
+      : nextOrderDate.toDate()
   }
 
   getExpirationDate({
@@ -45,7 +42,9 @@ class SubscriptionModuleService extends MedusaService({
     interval: SubscriptionInterval
     period: number
   }): Date {
-    return addInterval(subscription_date, interval, period)
+    return moment(subscription_date)
+      .add(period, interval === SubscriptionInterval.MONTHLY ? 'month' : 'year')
+      .toDate()
   }
 
   // @ts-expect-error narrower override of the generated bulk-create method
