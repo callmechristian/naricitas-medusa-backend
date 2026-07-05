@@ -15,16 +15,21 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
     return res.status(400).json({ message: 'Cart email is required' })
   }
 
-  // Ensure payment collection exists.
+  // Ensure payment collection exists and matches the cart total.
   let paymentCollection = cart.payment_collection
   if (!paymentCollection) {
     const [collection] = await paymentModuleService.createPaymentCollections([
       {
         currency_code: cart.currency_code,
-        amount: 0,
+        amount: cart.total,
       },
     ])
     paymentCollection = collection
+  } else if (paymentCollection.amount !== cart.total) {
+    paymentCollection = await paymentModuleService.updatePaymentCollections(
+      paymentCollection.id,
+      { amount: cart.total }
+    )
   }
 
   // Ensure Stripe account holder exists for the cart's email.
@@ -63,7 +68,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
     {
       provider_id: 'pp_stripe_stripe',
       currency_code: paymentCollection.currency_code || cart.currency_code,
-      amount: paymentCollection.amount || 0,
+      amount: paymentCollection.amount || cart.total,
       data: {
         setup_future_usage: 'off_session',
       },
