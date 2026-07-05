@@ -2,6 +2,7 @@ import { AbstractNotificationProviderService, MedusaError } from '@medusajs/fram
 import { CreateEmailOptions, Resend } from 'resend'
 import { orderPlacedEmail } from './emails/order-placed'
 import { passwordResetEmail } from './emails/password-reset'
+import { orderAlertOwnerEmail } from './emails/order-alert-owner'
 
 // NOTE: @medusajs/types@2.13.6 ships without dist/index.d.ts, so importing
 // `Logger`/`NotificationTypes` from `@medusajs/framework/types` fails to
@@ -40,11 +41,13 @@ type InjectedDependencies = {
 enum Templates {
   ORDER_PLACED = 'order-placed',
   PASSWORD_RESET = 'password-reset',
+  ORDER_ALERT_OWNER = 'order-alert-owner',
 }
 
 const templates: { [key in Templates]?: (props: unknown) => React.ReactNode } = {
   [Templates.ORDER_PLACED]: orderPlacedEmail,
   [Templates.PASSWORD_RESET]: passwordResetEmail,
+  [Templates.ORDER_ALERT_OWNER]: orderAlertOwnerEmail,
 }
 
 class ResendNotificationProviderService extends AbstractNotificationProviderService {
@@ -97,6 +100,8 @@ class ResendNotificationProviderService extends AbstractNotificationProviderServ
         return "Ruby here 🐾 your order is confirmed!"
       case Templates.PASSWORD_RESET:
         return "Ruby here 🐾 let's reset your password"
+      case Templates.ORDER_ALERT_OWNER:
+        return '🐾 New order placed'
       default:
         return 'New Email'
     }

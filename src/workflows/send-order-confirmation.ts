@@ -1,6 +1,7 @@
 import { createWorkflow, when, WorkflowResponse } from '@medusajs/framework/workflows-sdk'
 import { useQueryGraphStep } from '@medusajs/medusa/core-flows'
 import { sendNotificationStep } from './steps/send-notification'
+import { getOwnerAlertEmailsStep } from './steps/get-owner-alert-emails'
 
 type WorkflowInput = {
   id: string
@@ -52,6 +53,24 @@ export const sendOrderConfirmationWorkflow = createWorkflow(
           },
         },
       ])
+    })
+
+    const ownerAlertEmails = getOwnerAlertEmailsStep()
+
+    when({ ownerAlertEmails }, ({ ownerAlertEmails }) => {
+      return ownerAlertEmails.length > 0
+    }).then(() => {
+      return sendNotificationStep(
+        ownerAlertEmails.map((to) => ({
+          to,
+          channel: 'email',
+          template: 'order-alert-owner',
+          data: {
+            order: orders[0],
+            admin_url: process.env.BACKEND_URL ? `${process.env.BACKEND_URL}/app` : undefined,
+          },
+        }))
+      )
     })
 
     return new WorkflowResponse({
