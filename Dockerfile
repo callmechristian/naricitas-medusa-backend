@@ -26,7 +26,10 @@ RUN apk add --no-cache tini libc6-compat curl
 COPY --from=builder /app/.medusa/server /app/.medusa/server
 COPY start.sh /app/start.sh
 
-RUN chmod +x /app/start.sh \
+# Strip CRLF in case start.sh was checked out with Windows line endings
+# (breaks the #!/bin/sh shebang on Linux with "No such file or directory").
+RUN sed -i 's/\r$//' /app/start.sh \
+    && chmod +x /app/start.sh \
     && mkdir -p /app/.medusa/server/static
 
 ENV NODE_ENV=production
@@ -38,4 +41,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=180s --retries=5 \
   CMD curl -fsS "http://127.0.0.1:${PORT:-9000}/health" || exit 1
 
 ENTRYPOINT ["/sbin/tini", "--"]
-CMD ["/app/start.sh"]
+CMD ["/bin/sh", "/app/start.sh"]
