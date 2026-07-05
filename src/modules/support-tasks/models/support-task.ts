@@ -28,7 +28,7 @@ export const SupportTask = model.define('support_task', {
   customer_email: model.text().nullable(),
   source_type: model.text().nullable(),
   source_id: model.text().nullable(),
-  assignee_admin_user_id: model.text().nullable().index(),
+  assignee_admin_user_id: model.text().index().nullable(),
   tags: model.json().nullable(),
   metadata: model.json().nullable(),
   created_by_admin_id: model.text().nullable(),

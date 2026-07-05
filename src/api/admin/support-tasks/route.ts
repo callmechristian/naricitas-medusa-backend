@@ -9,6 +9,10 @@ const STATUSES = new Set(['open', 'in_progress', 'waiting_customer', 'resolved']
 const PRIORITIES = new Set(['low', 'normal', 'high', 'urgent'])
 const CATEGORIES = new Set(['refund', 'exchange', 'delivery', 'subscription', 'vip_followup'])
 
+type SupportTaskStatus = 'open' | 'in_progress' | 'waiting_customer' | 'resolved'
+type SupportTaskPriority = 'low' | 'normal' | 'high' | 'urgent'
+type SupportTaskCategory = 'refund' | 'exchange' | 'delivery' | 'subscription' | 'vip_followup'
+
 export async function GET(req: MedusaRequest, res: MedusaResponse): Promise<void> {
   const service = req.scope.resolve<SupportTasksModuleService>(SUPPORT_TASKS_MODULE)
   const sp = req.query as Record<string, string | undefined>
@@ -47,23 +51,25 @@ export async function POST(req: MedusaRequest, res: MedusaResponse): Promise<voi
     return
   }
 
-  const task = await service.createSupportTasks({
-    title: body.title,
-    summary: (body.summary as string) || null,
-    status: STATUSES.has(String(body.status)) ? (body.status as string) : 'open',
-    priority: PRIORITIES.has(String(body.priority)) ? (body.priority as string) : 'normal',
-    category: body.category as string,
-    channel: (body.channel as string) || null,
-    due_at: (body.due_at as string) || null,
-    customer_id: (body.customer_id as string) || null,
-    customer_name: (body.customer_name as string) || null,
-    customer_email: (body.customer_email as string) || null,
-    source_type: (body.source_type as string) || null,
-    source_id: (body.source_id as string) || null,
-    assignee_admin_user_id: (body.assignee_admin_user_id as string) || null,
-    tags: (body.tags as unknown) || null,
-    metadata: (body.metadata as unknown) || null,
-  })
+  const [task] = await service.createSupportTasks([
+    {
+      title: body.title,
+      summary: (body.summary as string) || null,
+      status: (STATUSES.has(String(body.status)) ? body.status : 'open') as SupportTaskStatus,
+      priority: (PRIORITIES.has(String(body.priority)) ? body.priority : 'normal') as SupportTaskPriority,
+      category: body.category as SupportTaskCategory,
+      channel: (body.channel as string) || null,
+      due_at: body.due_at ? new Date(body.due_at as string) : null,
+      customer_id: (body.customer_id as string) || null,
+      customer_name: (body.customer_name as string) || null,
+      customer_email: (body.customer_email as string) || null,
+      source_type: (body.source_type as string) || null,
+      source_id: (body.source_id as string) || null,
+      assignee_admin_user_id: (body.assignee_admin_user_id as string) || null,
+      tags: (body.tags as Record<string, unknown>) || null,
+      metadata: (body.metadata as Record<string, unknown>) || null,
+    },
+  ])
 
   res.status(201).json({ support_task: task })
 }

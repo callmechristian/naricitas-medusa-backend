@@ -39,7 +39,7 @@ function OrderAlertOwnerEmailComponent({ order, admin_url }: OrderAlertOwnerEmai
     <Tailwind>
       <Html className="font-sans bg-gray-100">
         <Head />
-        <Preview>New order #{order.display_id} — {formatPrice(order.total)}</Preview>
+        <Preview>{`New order #${order.display_id} — ${formatPrice(order.total)}`}</Preview>
         <Container className="bg-white my-6 mx-auto w-full max-w-md rounded-lg p-6">
           <Section className="bg-[#103472] text-white px-4 py-3 rounded-t-lg -mt-6 -mx-6 mb-4">
             <Text className="text-base font-semibold m-0">🐾 New order placed</Text>

@@ -1,5 +1,5 @@
 import { defineRouteConfig } from '@medusajs/admin-sdk'
-import { LifeBuoy } from '@medusajs/icons'
+import { Lifebuoy } from '@medusajs/icons'
 import { Badge, Container, Heading, Select, Text } from '@medusajs/ui'
 import { useEffect, useState } from 'react'
 
@@ -102,7 +102,7 @@ const SupportTasksPage = () => {
 
 export const config = defineRouteConfig({
   label: 'Support Tasks',
-  icon: LifeBuoy,
+  icon: Lifebuoy,
 })
 
 export default SupportTasksPage
