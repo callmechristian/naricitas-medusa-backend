@@ -72,7 +72,10 @@ export const getPaymentMethodStep = createStep(
     const paymentMethodToUse = getLatestPaymentMethod(paymentMethods)
 
     return new StepResponse(
-      paymentMethodToUse,
+      {
+        paymentMethod: paymentMethodToUse,
+        accountHolder: accountHolder as AccountHolderDTO,
+      },
       accountHolder as AccountHolderDTO
     )
   }

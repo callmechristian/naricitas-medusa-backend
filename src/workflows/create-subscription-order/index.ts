@@ -77,8 +77,8 @@ const createSubscriptionOrderWorkflow = createWorkflow(
     const { paymentMethod: defaultPaymentMethod, accountHolder } = transform(
       { defaultPaymentMethodAndHolder },
       (data) => ({
-        paymentMethod: data.defaultPaymentMethodAndHolder,
-        accountHolder: data.defaultPaymentMethodAndHolder,
+        paymentMethod: data.defaultPaymentMethodAndHolder.paymentMethod,
+        accountHolder: data.defaultPaymentMethodAndHolder.accountHolder,
       })
     )
 
