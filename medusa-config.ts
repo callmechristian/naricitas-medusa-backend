@@ -28,6 +28,7 @@ module.exports = defineConfig({
   },
   modules: [
     { key: "api_key", resolve: "@medusajs/medusa/api-key" },
+    { resolve: "./src/modules/support-tasks" },
     {
       resolve: "@medusajs/medusa/notification",
       options: {
