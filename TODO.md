@@ -26,7 +26,7 @@ Legend: `[ ]` not started · `[~]` in progress · `[x]` done
 ## Immediate outstanding work
 
 ### Subscriptions (Phase 4 gaps)
-- [ ] **Dunning / failed-renewal handling.** `SubscriptionStatus.FAILED` is
+- [x] **Dunning / failed-renewal handling.** `SubscriptionStatus.FAILED` is
       defined but never set anywhere. If a renewal's off-session Stripe charge
       fails, `create-subscription-orders.ts` just logs and moves on —
       `next_order_date` never advances, so the subscription silently stops
@@ -34,13 +34,13 @@ Legend: `[ ]` not started · `[~]` in progress · `[x]` done
       notification. Needs: catch the payment failure in
       `create-subscription-order` workflow, mark the subscription `failed`,
       and (ideally) notify the customer + retry/grace-period logic.
-- [ ] **Customer-facing view/cancel flow in naricitas-web.** Backend routes
+- [x] **Customer-facing view/cancel flow in naricitas-web.** Backend routes
       exist (`GET`/`POST /store/customers/me/subscriptions[/id]`) but require
       a native Medusa customer JWT — naricitas-web has no customer login
       (guest checkout + D1 session→`medusa_customer_id` bridge only). No chat
       tool or bridging API route exists for this yet (unlike `list_my_orders`
       / `get_order_status` for regular orders).
-- [ ] **Admin cancel/expire action.** The Medusa Admin subscriptions UI
+- [x] **Admin cancel/expire action.** The Medusa Admin subscriptions UI
       (`src/admin/routes/subscriptions/**`) is read-only (list + detail only);
       support staff can't manually cancel or expire a subscription from the
       dashboard.

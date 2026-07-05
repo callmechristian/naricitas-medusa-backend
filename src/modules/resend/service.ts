@@ -3,6 +3,7 @@ import { CreateEmailOptions, Resend } from 'resend'
 import { orderPlacedEmail } from './emails/order-placed'
 import { passwordResetEmail } from './emails/password-reset'
 import { orderAlertOwnerEmail } from './emails/order-alert-owner'
+import { subscriptionPaymentFailedEmail } from './emails/subscription-payment-failed'
 
 // NOTE: @medusajs/types@2.13.6 ships without dist/index.d.ts, so importing
 // `Logger`/`NotificationTypes` from `@medusajs/framework/types` fails to
@@ -42,12 +43,14 @@ enum Templates {
   ORDER_PLACED = 'order-placed',
   PASSWORD_RESET = 'password-reset',
   ORDER_ALERT_OWNER = 'order-alert-owner',
+  SUBSCRIPTION_PAYMENT_FAILED = 'subscription-payment-failed',
 }
 
 const templates: { [key in Templates]?: (props: unknown) => React.ReactNode } = {
   [Templates.ORDER_PLACED]: orderPlacedEmail,
   [Templates.PASSWORD_RESET]: passwordResetEmail,
   [Templates.ORDER_ALERT_OWNER]: orderAlertOwnerEmail,
+  [Templates.SUBSCRIPTION_PAYMENT_FAILED]: subscriptionPaymentFailedEmail,
 }
 
 class ResendNotificationProviderService extends AbstractNotificationProviderService {
@@ -102,6 +105,8 @@ class ResendNotificationProviderService extends AbstractNotificationProviderServ
         return "Ruby here 🐾 let's reset your password"
       case Templates.ORDER_ALERT_OWNER:
         return '🐾 New order placed'
+      case Templates.SUBSCRIPTION_PAYMENT_FAILED:
+        return 'Ruby here 🐾 your subscription payment needs attention'
       default:
         return 'New Email'
     }

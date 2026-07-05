@@ -1,21 +1,23 @@
 import {
   createWorkflow,
   transform,
+  when,
   WorkflowResponse,
 } from '@medusajs/framework/workflows-sdk'
 import {
   useQueryGraphStep,
   createPaymentCollectionsStep,
-  createPaymentSessionsWorkflow,
-  authorizePaymentSessionStep,
   createRemoteLinkStep,
-  capturePaymentStep,
 } from '@medusajs/medusa/core-flows'
 import { SubscriptionData } from '../../modules/subscriptions/types'
 import createSubscriptionOrderStep, {
   CreateSubscriptionOrderStepInput,
 } from './steps/create-subscription-order'
 import { getPaymentMethodStep } from './steps/get-payment-method'
+import processSubscriptionPaymentStep, {
+  PaymentFailureResult,
+} from './steps/process-subscription-payment'
+import handlePaymentFailureStep from './steps/handle-payment-failure'
 import updateSubscriptionStep from './steps/update-subscription'
 
 type WorkflowInput = {
@@ -68,47 +70,54 @@ const createSubscriptionOrderWorkflow = createWorkflow(
       customer: subscriptions[0].cart.customer,
     })
 
-    const paymentSessionData = transform(
-      { payment_collection, subscriptions, defaultPaymentMethod },
-      (data) => {
-        return {
-          payment_collection_id: data.payment_collection.id,
-          provider_id: 'pp_stripe_stripe',
-          customer_id: data.subscriptions[0].cart?.customer?.id,
-          data: {
-            payment_method: data.defaultPaymentMethod.id,
-            off_session: true,
-            confirm: true,
-            capture_method: 'automatic',
-          },
-        }
-      }
+    const paymentResult = processSubscriptionPaymentStep({
+      payment_collection,
+      cart: subscriptions[0].cart,
+      defaultPaymentMethod,
+    })
+
+    const successPayload = transform(
+      { subscriptions, payment_collection },
+      (data) => ({
+        subscription: data.subscriptions[0] as unknown as SubscriptionData,
+        cart: data.subscriptions[0].cart,
+        payment_collection,
+      })
     )
 
-    const paymentSession = createPaymentSessionsWorkflow.runAsStep({
-      input: paymentSessionData,
+    const order = when(
+      'subscription-payment-success',
+      { paymentResult, successPayload },
+      (data) => data.paymentResult.success
+    ).then(() => {
+      const { order, linkDefs } = createSubscriptionOrderStep({
+        subscription: successPayload.subscription,
+        cart: successPayload.cart,
+        payment_collection: successPayload.payment_collection,
+      } as unknown as CreateSubscriptionOrderStepInput)
+
+      createRemoteLinkStep(linkDefs)
+
+      updateSubscriptionStep({
+        subscription_id: input.subscription.id,
+      })
+
+      return order
     })
 
-    const payment = authorizePaymentSessionStep({
-      id: paymentSession.id,
-      context: paymentSession.context,
-    })
-
-    const { order, linkDefs } = createSubscriptionOrderStep({
-      subscription: input.subscription,
-      cart: subscriptions[0].cart,
-      payment_collection,
-    } as unknown as CreateSubscriptionOrderStepInput)
-
-    createRemoteLinkStep(linkDefs)
-
-    capturePaymentStep({
-      payment_id: payment.id,
-      amount: payment.amount,
-    })
-
-    updateSubscriptionStep({
-      subscription_id: input.subscription.id,
+    when(
+      'subscription-payment-failure',
+      { paymentResult, subscriptions },
+      (data) => !data.paymentResult.success
+    ).then(() => {
+      handlePaymentFailureStep({
+        subscription_id: input.subscription.id,
+        customer_email: subscriptions[0].cart?.email,
+        customer_name:
+          subscriptions[0].cart?.customer?.first_name ||
+          subscriptions[0].cart?.shipping_address?.first_name,
+        failure: (paymentResult as unknown as PaymentFailureResult).error,
+      })
     })
 
     return new WorkflowResponse({

@@ -119,6 +119,30 @@ class SubscriptionModuleService extends MedusaService({
       },
     })
   }
+
+  async recordPaymentFailure(
+    id: string,
+    reason: string
+  ): Promise<SubscriptionData> {
+    const subscription = await this.retrieveSubscription(id)
+
+    return await this.updateSubscriptions({
+      id,
+      failed_payment_count: (subscription.failed_payment_count || 0) + 1,
+      last_failure_at: new Date(),
+      last_failure_reason: reason,
+      status: SubscriptionStatus.FAILED,
+    })
+  }
+
+  async resetPaymentFailure(id: string): Promise<SubscriptionData> {
+    return await this.updateSubscriptions({
+      id,
+      failed_payment_count: 0,
+      last_failure_at: null,
+      last_failure_reason: null,
+    })
+  }
 }
 
 export default SubscriptionModuleService

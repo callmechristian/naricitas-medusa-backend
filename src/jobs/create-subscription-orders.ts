@@ -55,9 +55,15 @@ export default async function createSubscriptionOrdersJob(
             },
           })
 
-          logger.info(
-            `Created new order ${result.order.id} for subscription ${subscription.id}`
-          )
+          if (result.order?.id) {
+            logger.info(
+              `Created new order ${result.order.id} for subscription ${subscription.id}`
+            )
+          } else {
+            logger.info(
+              `Subscription ${subscription.id} renewal payment failed and was marked for dunning.`
+            )
+          }
         } catch (e) {
           logger.error(
             `Error creating a new order for subscription ${subscription.id}`,

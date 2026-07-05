@@ -10,6 +10,9 @@ const Subscription = model.define('subscription', {
   last_order_date: model.dateTime(),
   next_order_date: model.dateTime().index().nullable(),
   expiration_date: model.dateTime().index(),
+  failed_payment_count: model.number().default(0),
+  last_failure_at: model.dateTime().nullable(),
+  last_failure_reason: model.text().nullable(),
   metadata: model.json().nullable(),
 })
 
