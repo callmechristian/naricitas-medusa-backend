@@ -66,28 +66,39 @@ function OrderPlacedEmailComponent({ order }: OrderPlacedEmailProps) {
     return price?.toString() || ''
   }
 
+  const firstName = order.customer?.first_name || order.shipping_address?.first_name || 'friend'
+
   return (
     <Tailwind>
       <Html className="font-sans bg-gray-100">
         <Head />
-        <Preview>Thank you for your order from Naricitas</Preview>
+        <Preview>Ruby here 🐾 your order just landed on my desk (I sniffed it, it's good)</Preview>
         <Body className="bg-white my-10 mx-auto w-full max-w-2xl">
           <Section className="bg-[#103472] text-white px-6 py-4">
-            <Text className="text-lg font-semibold m-0">Naricitas</Text>
+            <Row>
+              <Column>
+                <Text className="text-lg font-semibold m-0">Naricitas</Text>
+              </Column>
+              <Column align="right">
+                <Text className="text-sm m-0 text-blue-100">🌭 a note from Ruby</Text>
+              </Column>
+            </Row>
           </Section>
 
           <Container className="p-6">
             <Heading className="text-2xl font-bold text-center text-gray-800">
-              Thank you for your order, {order.customer?.first_name || order.shipping_address?.first_name}
+              Woof, {firstName}! Your order is officially in.
             </Heading>
             <Text className="text-center text-gray-600 mt-2">
-              We're processing your order and will notify you when it ships.
+              Ruby here 🐾 — I personally sniffed every item in this parcel and gave it my seal of
+              approval (four paws up). My humans at Naricitas are already packing it up, and I'll
+              come tell you the second it's on its way.
             </Text>
           </Container>
 
           <Container className="px-6">
             <Heading className="text-xl font-semibold text-gray-800 mb-4">
-              Your Items
+              What's in your parcel
             </Heading>
             <Text className="text-sm m-0 my-2 text-gray-500">Order ID: #{order.display_id}</Text>
             {order.items?.map((item) => (
@@ -133,8 +144,12 @@ function OrderPlacedEmailComponent({ order }: OrderPlacedEmailProps) {
           </Container>
 
           <Section className="bg-gray-50 p-6 mt-10">
-            <Text className="text-center text-gray-500 text-sm">
-              If you have any questions, reply to this email or contact us at support@naricitas.shop.
+            <Text className="text-center text-gray-600 text-sm italic">
+              Wags and wiggles,<br />Ruby 🌭🐾 (and the humans at Naricitas)
+            </Text>
+            <Text className="text-center text-gray-500 text-sm mt-4">
+              Questions? Just reply to this email — I'll fetch a human, or contact us at
+              support@naricitas.shop.
             </Text>
             <Text className="text-center text-gray-400 text-xs mt-4">
               © {new Date().getFullYear()} Naricitas. All rights reserved.

@@ -91,7 +91,7 @@ class ResendNotificationProviderService extends AbstractNotificationProviderServ
     }
     switch (template) {
       case Templates.ORDER_PLACED:
-        return 'Order Confirmation'
+        return "Ruby here 🐾 your order is confirmed!"
       default:
         return 'New Email'
     }
