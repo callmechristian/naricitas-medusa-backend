@@ -42,12 +42,6 @@ const createSubscriptionOrderWorkflow = createWorkflow(
         'cart.shipping_methods.adjustments.*',
         'cart.payment_collection.*',
         'cart.payment_collection.payment_sessions.*',
-        'cart.customer.id',
-        'cart.customer.email',
-        'cart.customer.first_name',
-        'cart.customer.last_name',
-        'cart.customer.phone',
-        'cart.customer.company_name',
       ],
       filters: {
         id: input.subscription.id,
@@ -71,7 +65,7 @@ const createSubscriptionOrderWorkflow = createWorkflow(
     ])[0]
 
     const defaultPaymentMethodAndHolder = getPaymentMethodStep({
-      customer: subscriptions[0].cart.customer,
+      email: subscriptions[0].cart.email,
     })
 
     const { paymentMethod: defaultPaymentMethod, accountHolder } = transform(

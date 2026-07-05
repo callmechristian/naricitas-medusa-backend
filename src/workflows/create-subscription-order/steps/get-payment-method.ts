@@ -3,15 +3,11 @@ import {
   Modules,
   ContainerRegistrationKeys,
 } from '@medusajs/framework/utils'
-import {
-  AccountHolderDTO,
-  CustomerDTO,
-  PaymentMethodDTO,
-} from '@medusajs/framework/types'
+import { AccountHolderDTO, PaymentMethodDTO } from '@medusajs/framework/types'
 import { createStep, StepResponse } from '@medusajs/framework/workflows-sdk'
 
 export interface GetPaymentMethodStepInput {
-  customer?: CustomerDTO
+  email?: string
 }
 
 // Since we know we are using Stripe, we can get the correct creation date from their data.
@@ -24,8 +20,8 @@ const getLatestPaymentMethod = (paymentMethods: PaymentMethodDTO[]) => {
 
 export const getPaymentMethodStep = createStep(
   'get-payment-method',
-  async ({ customer }: GetPaymentMethodStepInput, { container }) => {
-    if (!customer?.email) {
+  async ({ email }: GetPaymentMethodStepInput, { container }) => {
+    if (!email) {
       throw new MedusaError(
         MedusaError.Types.INVALID_DATA,
         'No customer email found while retrieving payment method'
@@ -40,7 +36,7 @@ export const getPaymentMethodStep = createStep(
       entity: 'account_holder',
       fields: ['id', 'provider_id', 'external_id', 'email', 'data'],
       filters: {
-        email: customer.email,
+        email,
         provider_id: 'pp_stripe_stripe',
       },
     })

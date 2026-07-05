@@ -48,7 +48,16 @@ const processSubscriptionPaymentStep = createStep<
     const logger = container.resolve('logger')
 
     try {
-      const customer = cart?.customer as CustomerDTO | undefined
+      const customer = cart
+        ? ({
+            id: cart.customer_id || '',
+            email: cart.email,
+            first_name: cart.shipping_address?.first_name,
+            last_name: cart.shipping_address?.last_name,
+            phone: cart.shipping_address?.phone,
+            billing_address: cart.shipping_address,
+          } as unknown as CustomerDTO)
+        : undefined
 
       const paymentSession = await paymentModule.createPaymentSession(
         payment_collection.id,
