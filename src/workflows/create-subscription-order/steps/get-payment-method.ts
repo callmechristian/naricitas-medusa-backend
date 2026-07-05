@@ -1,11 +1,17 @@
-import { MedusaError, Modules } from '@medusajs/framework/utils'
-import { AccountHolderDTO, CustomerDTO, PaymentMethodDTO } from '@medusajs/framework/types'
+import {
+  MedusaError,
+  Modules,
+  ContainerRegistrationKeys,
+} from '@medusajs/framework/utils'
+import {
+  AccountHolderDTO,
+  CustomerDTO,
+  PaymentMethodDTO,
+} from '@medusajs/framework/types'
 import { createStep, StepResponse } from '@medusajs/framework/workflows-sdk'
 
 export interface GetPaymentMethodStepInput {
-  customer?: CustomerDTO & {
-    account_holder: AccountHolderDTO
-  }
+  customer?: CustomerDTO
 }
 
 // Since we know we are using Stripe, we can get the correct creation date from their data.
@@ -19,20 +25,40 @@ const getLatestPaymentMethod = (paymentMethods: PaymentMethodDTO[]) => {
 export const getPaymentMethodStep = createStep(
   'get-payment-method',
   async ({ customer }: GetPaymentMethodStepInput, { container }) => {
-    const paymentModuleService = container.resolve(Modules.PAYMENT)
-
-    if (!customer?.account_holder) {
+    if (!customer?.email) {
       throw new MedusaError(
         MedusaError.Types.INVALID_DATA,
-        'No account holder found for the customer while retrieving payment method'
+        'No customer email found while retrieving payment method'
       )
     }
+
+    const query = container.resolve(ContainerRegistrationKeys.QUERY)
+
+    const {
+      data: [accountHolder],
+    } = await query.graph({
+      entity: 'account_holder',
+      fields: ['id', 'provider_id', 'external_id', 'email', 'data'],
+      filters: {
+        email: customer.email,
+        provider_id: 'pp_stripe_stripe',
+      },
+    })
+
+    if (!accountHolder) {
+      throw new MedusaError(
+        MedusaError.Types.INVALID_DATA,
+        'No Stripe account holder found for the customer while retrieving payment method'
+      )
+    }
+
+    const paymentModuleService = container.resolve(Modules.PAYMENT)
 
     const paymentMethods = await paymentModuleService.listPaymentMethods({
       // you can change to other payment provider
       provider_id: 'pp_stripe_stripe',
       context: {
-        account_holder: customer.account_holder,
+        account_holder: accountHolder as AccountHolderDTO,
       },
     })
 
@@ -45,6 +71,9 @@ export const getPaymentMethodStep = createStep(
 
     const paymentMethodToUse = getLatestPaymentMethod(paymentMethods)
 
-    return new StepResponse(paymentMethodToUse, customer.account_holder)
+    return new StepResponse(
+      paymentMethodToUse,
+      accountHolder as AccountHolderDTO
+    )
   }
 )

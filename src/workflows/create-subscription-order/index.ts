@@ -43,7 +43,6 @@ const createSubscriptionOrderWorkflow = createWorkflow(
         'cart.payment_collection.*',
         'cart.payment_collection.payment_sessions.*',
         'cart.customer.*',
-        'cart.customer.account_holder.*',
       ],
       filters: {
         id: input.subscription.id,
@@ -66,14 +65,23 @@ const createSubscriptionOrderWorkflow = createWorkflow(
       paymentCollectionData,
     ])[0]
 
-    const defaultPaymentMethod = getPaymentMethodStep({
+    const defaultPaymentMethodAndHolder = getPaymentMethodStep({
       customer: subscriptions[0].cart.customer,
     })
+
+    const { paymentMethod: defaultPaymentMethod, accountHolder } = transform(
+      { defaultPaymentMethodAndHolder },
+      (data) => ({
+        paymentMethod: data.defaultPaymentMethodAndHolder,
+        accountHolder: data.defaultPaymentMethodAndHolder,
+      })
+    )
 
     const paymentResult = processSubscriptionPaymentStep({
       payment_collection,
       cart: subscriptions[0].cart,
       defaultPaymentMethod,
+      accountHolder,
     })
 
     const successPayload = transform(

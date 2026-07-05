@@ -8,14 +8,11 @@ import {
   AccountHolderDTO,
 } from '@medusajs/framework/types'
 
-type CustomerWithAccountHolder = CustomerDTO & {
-  account_holder?: AccountHolderDTO
-}
-
 type ProcessSubscriptionPaymentStepInput = {
   payment_collection: PaymentCollectionDTO
   cart: CartWorkflowDTO
   defaultPaymentMethod: PaymentMethodDTO
+  accountHolder: AccountHolderDTO
 }
 
 export type PaymentSuccessResult = {
@@ -44,14 +41,14 @@ const processSubscriptionPaymentStep = createStep<
 >(
   'process-subscription-payment',
   async (
-    { payment_collection, cart, defaultPaymentMethod }: ProcessSubscriptionPaymentStepInput,
+    { payment_collection, cart, defaultPaymentMethod, accountHolder }: ProcessSubscriptionPaymentStepInput,
     { container }
   ) => {
     const paymentModule = container.resolve(Modules.PAYMENT)
     const logger = container.resolve('logger')
 
     try {
-      const customer = cart?.customer as CustomerWithAccountHolder | undefined
+      const customer = cart?.customer as CustomerDTO | undefined
 
       const paymentSession = await paymentModule.createPaymentSession(
         payment_collection.id,
@@ -67,7 +64,7 @@ const processSubscriptionPaymentStep = createStep<
           },
           context: {
             customer,
-            account_holder: customer?.account_holder,
+            account_holder: accountHolder,
           },
           metadata: {},
         }
