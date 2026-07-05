@@ -30,7 +30,15 @@ const createSubscriptionOrderWorkflow = createWorkflow(
     const { data: subscriptions } = useQueryGraphStep({
       entity: 'subscription',
       fields: [
-        '*',
+        'id',
+        'status',
+        'interval',
+        'period',
+        'subscription_date',
+        'last_order_date',
+        'next_order_date',
+        'expiration_date',
+        'metadata',
         'cart.id',
         'cart.email',
         'cart.currency_code',
