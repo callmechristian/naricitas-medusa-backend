@@ -4,7 +4,6 @@ import {
   PaymentCollectionDTO,
   PaymentMethodDTO,
   CartWorkflowDTO,
-  CustomerDTO,
   AccountHolderDTO,
 } from '@medusajs/framework/types'
 
@@ -48,17 +47,6 @@ const processSubscriptionPaymentStep = createStep<
     const logger = container.resolve('logger')
 
     try {
-      const customer = cart
-        ? ({
-            id: cart.customer_id || '',
-            email: cart.email,
-            first_name: cart.shipping_address?.first_name,
-            last_name: cart.shipping_address?.last_name,
-            phone: cart.shipping_address?.phone,
-            billing_address: cart.shipping_address,
-          } as unknown as CustomerDTO)
-        : undefined
-
       const paymentSession = await paymentModule.createPaymentSession(
         payment_collection.id,
         {
@@ -72,7 +60,6 @@ const processSubscriptionPaymentStep = createStep<
             capture_method: 'automatic',
           },
           context: {
-            customer,
             account_holder: accountHolder,
           },
           metadata: {},

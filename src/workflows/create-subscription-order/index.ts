@@ -43,7 +43,6 @@ const createSubscriptionOrderWorkflow = createWorkflow(
         'cart.email',
         'cart.currency_code',
         'cart.region_id',
-        'cart.customer_id',
         'cart.sales_channel_id',
         'cart.items.*',
         'cart.items.tax_lines.*',
